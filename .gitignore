@@ -1,0 +1,23 @@
+.env
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.venv/
+
+# Runtime data and local models
+data/
+/models/
+
+# Frontend
+node_modules/
+dist/
+.angular/
+
+# IDE
+.idea/
+.vscode/

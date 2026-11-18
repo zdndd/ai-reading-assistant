@@ -1,0 +1,97 @@
+<aside class="evidence-panel" aria-label="回答依据">
+  <header class="panel-header">
+    <div>
+      <div class="header-line">
+        <svg [lucideIcon]="quoteIcon" [size]="17"></svg>
+        <span>原文依据</span>
+      </div>
+      <p>
+        @if (evidence.length) {
+          {{ evidence.length }} 个相关片段
+        } @else {
+          等待提问
+        }
+      </p>
+    </div>
+    @if (showClose) {
+      <button
+        class="icon-button panel-close"
+        type="button"
+        title="关闭依据"
+        aria-label="关闭依据面板"
+        (click)="closed.emit()"
+      >
+        <svg [lucideIcon]="closeIcon" [size]="18"></svg>
+      </button>
+    }
+  </header>
+
+  @if (!evidence.length) {
+    <div class="evidence-empty">
+      <span class="empty-mark">
+        <svg [lucideIcon]="fileIcon" [size]="22"></svg>
+      </span>
+      <strong>依据会出现在这里</strong>
+      <p>回答中的引用可回到对应原文片段。</p>
+    </div>
+  } @else {
+    <div class="evidence-list">
+      @for (item of evidence; track item.chunk_id; let index = $index) {
+        <article
+          class="evidence-item"
+          [class.active]="selectedIndex === index"
+        >
+          <button
+            class="evidence-trigger"
+            type="button"
+            [attr.aria-expanded]="selectedIndex === index"
+            (click)="selectEvidence(index)"
+          >
+            <span class="reference-index">{{ index + 1 }}</span>
+            <span class="evidence-title">
+              <strong>{{ item.book_title }}</strong>
+              <span>片段 {{ item.chunk_index }}</span>
+            </span>
+            <svg
+              class="chevron"
+              [lucideIcon]="chevronIcon"
+              [size]="16"
+            ></svg>
+          </button>
+
+          <div class="score-row">
+            <span>相关度</span>
+            <div class="score-track" aria-hidden="true">
+              <span [style.width.%]="scorePercent(item)"></span>
+            </div>
+            <strong>{{ scorePercent(item) }}</strong>
+          </div>
+
+          <p class="evidence-text" [class.expanded]="selectedIndex === index">
+            {{ item.text }}
+          </p>
+
+          @if (selectedIndex === index) {
+            <div class="evidence-actions">
+              <span>{{ item.text.length }} 字</span>
+              <button
+                type="button"
+                class="text-action"
+                [title]="copiedId() === item.chunk_id ? '已复制' : '复制原文'"
+                (click)="copyEvidence(item, $event)"
+              >
+                @if (copiedId() === item.chunk_id) {
+                  <svg [lucideIcon]="checkIcon" [size]="14"></svg>
+                  已复制
+                } @else {
+                  <svg [lucideIcon]="copyIcon" [size]="14"></svg>
+                  复制原文
+                }
+              </button>
+            </div>
+          }
+        </article>
+      }
+    </div>
+  }
+</aside>

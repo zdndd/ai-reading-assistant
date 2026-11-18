@@ -1,0 +1,528 @@
+<div
+  class="app-shell"
+  [class.sidebar-visible]="sidebarOpen()"
+  [class.evidence-visible]="evidenceOpen()"
+>
+  @if (sidebarOpen() || evidenceOpen()) {
+    <button
+      class="mobile-scrim"
+      type="button"
+      aria-label="关闭侧栏"
+      (click)="closeMobilePanels()"
+    ></button>
+  }
+
+  <aside class="library-sidebar" [class.mobile-open]="sidebarOpen()">
+    <header class="brand">
+      <span class="brand-mark">
+        <svg [lucideIcon]="bookIcon" [size]="21" [strokeWidth]="1.8"></svg>
+      </span>
+      <span class="brand-copy">
+        <strong>页间</strong>
+        <span>AI 读书助手</span>
+      </span>
+      <button
+        class="sidebar-close"
+        type="button"
+        title="关闭书库"
+        aria-label="关闭书库"
+        (click)="sidebarOpen.set(false)"
+      >
+        <svg [lucideIcon]="closeIcon" [size]="18"></svg>
+      </button>
+    </header>
+
+    <div class="sidebar-section-heading">
+      <span>书库</span>
+      <button
+        class="sidebar-icon-button"
+        type="button"
+        title="添加书籍"
+        aria-label="添加书籍"
+        (click)="openUploadDialog()"
+      >
+        <svg [lucideIcon]="plusIcon" [size]="17"></svg>
+      </button>
+    </div>
+
+    <label class="library-search">
+      <svg [lucideIcon]="searchIcon" [size]="16"></svg>
+      <input
+        type="search"
+        placeholder="搜索书名"
+        aria-label="搜索书名"
+        [value]="searchTerm()"
+        (input)="updateSearch($event)"
+      >
+    </label>
+
+    <nav class="book-navigation" aria-label="书籍列表">
+      <button
+        class="scope-button all-books"
+        type="button"
+        [class.active]="selectedBookId() === null"
+        (click)="selectAllBooks()"
+      >
+        <span class="scope-icon">
+          <svg [lucideIcon]="layersIcon" [size]="18"></svg>
+        </span>
+        <span class="scope-copy">
+          <strong>全部书籍</strong>
+          <span>{{ formatNumber(totalChunks()) }} 个片段</span>
+        </span>
+        <svg
+          class="scope-chevron"
+          [lucideIcon]="chevronIcon"
+          [size]="15"
+        ></svg>
+      </button>
+
+      <div class="book-list">
+        @if (loadingBooks()) {
+          @for (item of [1, 2, 3]; track item) {
+            <div class="book-skeleton">
+              <span></span>
+              <div>
+                <i></i>
+                <i></i>
+              </div>
+            </div>
+          }
+        } @else {
+          @for (book of filteredBooks(); track book.id) {
+            <article
+              class="book-row"
+              [class.active]="selectedBookId() === book.id"
+            >
+              <button
+                class="book-select"
+                type="button"
+                [attr.aria-current]="
+                  selectedBookId() === book.id ? 'page' : null
+                "
+                (click)="selectBook(book.id)"
+              >
+                <span class="book-cover">{{ bookInitial(book) }}</span>
+                <span class="book-copy">
+                  <strong>{{ book.title }}</strong>
+                  <span>
+                    {{ book.source_name }} ·
+                    {{ formatNumber(book.chunk_count) }}
+                  </span>
+                </span>
+              </button>
+              <button
+                class="book-delete"
+                type="button"
+                title="移出书库"
+                aria-label="移出书库"
+                (click)="requestDelete(book, $event)"
+              >
+                <svg [lucideIcon]="trashIcon" [size]="15"></svg>
+              </button>
+            </article>
+          } @empty {
+            @if (searchTerm().trim()) {
+              <p class="book-list-empty">没有匹配的书名</p>
+            } @else {
+              <p class="book-list-empty">还没有书籍</p>
+            }
+          }
+        }
+      </div>
+    </nav>
+
+    <footer class="sidebar-footer">
+      <div class="library-stats">
+        <span class="stats-icon">
+          <svg [lucideIcon]="databaseIcon" [size]="16"></svg>
+        </span>
+        <span>
+          <strong>{{ books().length }} 本书</strong>
+          <small>{{ connectionLabel() }}</small>
+        </span>
+      </div>
+      <button
+        class="sidebar-upload"
+        type="button"
+        (click)="openUploadDialog()"
+      >
+        <svg [lucideIcon]="plusIcon" [size]="17"></svg>
+        添加书籍
+      </button>
+    </footer>
+  </aside>
+
+  <main class="workspace">
+    <header class="workspace-header">
+      <div class="scope-heading">
+        <button
+          class="mobile-menu icon-button"
+          type="button"
+          title="打开书库"
+          aria-label="打开书库"
+          (click)="toggleSidebar()"
+        >
+          <svg [lucideIcon]="menuIcon" [size]="20"></svg>
+        </button>
+        <div class="scope-text">
+          <span class="scope-eyebrow">{{ currentScopeEyebrow() }}</span>
+          <h1>{{ currentScopeTitle() }}</h1>
+          <p>{{ currentScopeMeta() }}</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <span
+          class="connection-state"
+          [class.offline]="connectionOffline()"
+        >
+          <span class="status-dot"></span>
+          {{ connectionLabel() }}
+        </span>
+        <button
+          class="evidence-toggle icon-button"
+          type="button"
+          title="查看原文依据"
+          aria-label="查看原文依据"
+          (click)="toggleEvidence()"
+        >
+          <svg [lucideIcon]="panelIcon" [size]="18"></svg>
+          @if (evidenceCount()) {
+            <span class="notification-badge">{{ evidenceCount() }}</span>
+          }
+        </button>
+        <button
+          class="button button-primary header-upload"
+          type="button"
+          title="添加书籍"
+          aria-label="添加书籍"
+          (click)="openUploadDialog()"
+        >
+          <svg [lucideIcon]="plusIcon" [size]="17"></svg>
+          <span>添加书籍</span>
+        </button>
+      </div>
+    </header>
+
+    <section class="conversation-panel" aria-label="阅读对话">
+      <div #conversation class="conversation-scroll">
+        @if (loadingBooks()) {
+          <div class="loading-state">
+            <span class="loading-orbit" aria-hidden="true"></span>
+            <p>正在打开书库</p>
+          </div>
+        } @else if (bookLoadError()) {
+          <div class="load-error-state">
+            <span class="state-icon error">
+              <svg [lucideIcon]="alertIcon" [size]="22"></svg>
+            </span>
+            <h2>书库暂时无法连接</h2>
+            <p>{{ bookLoadError() }}</p>
+            <button
+              class="button button-secondary"
+              type="button"
+              (click)="reloadBooks()"
+            >
+              <svg [lucideIcon]="rotateIcon" [size]="16"></svg>
+              重新连接
+            </button>
+          </div>
+        } @else if (!turns().length) {
+          <div class="welcome-state">
+            <div class="welcome-mark" aria-hidden="true">
+              <svg [lucideIcon]="bookIcon" [size]="31" [strokeWidth]="1.5"></svg>
+              <span></span>
+            </div>
+            <span class="welcome-kicker">
+              <svg [lucideIcon]="sparklesIcon" [size]="14"></svg>
+              {{ selectedBook() ? '单书精读' : '跨书发现' }}
+            </span>
+            <h2>{{ emptyTitle() }}</h2>
+            <p>
+              @if (books().length) {
+                选择一个阅读方向，或直接写下你的问题。
+              } @else {
+                添加一本 TXT 或 Markdown 文档，建立你的第一份书库索引。
+              }
+            </p>
+
+            @if (books().length) {
+              <div class="suggestion-grid">
+                @for (
+                  suggestion of suggestions();
+                  track suggestion.title;
+                  let index = $index
+                ) {
+                  <button
+                    class="suggestion-card"
+                    type="button"
+                    [disabled]="asking()"
+                    (click)="submitQuestion(suggestion.prompt)"
+                  >
+                    <span class="suggestion-index">
+                      {{ indexLabel(index) }}
+                    </span>
+                    <svg
+                      [lucideIcon]="suggestion.icon"
+                      [size]="18"
+                    ></svg>
+                    <strong>{{ suggestion.title }}</strong>
+                    <svg
+                      class="suggestion-arrow"
+                      [lucideIcon]="chevronIcon"
+                      [size]="15"
+                    ></svg>
+                  </button>
+                }
+              </div>
+            } @else {
+              <button
+                class="button button-primary welcome-action"
+                type="button"
+                (click)="openUploadDialog()"
+              >
+                <svg [lucideIcon]="plusIcon" [size]="17"></svg>
+                添加第一本书
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="conversation-thread">
+            @for (turn of turns(); track turn.id) {
+              <article class="conversation-turn">
+                <div class="user-row">
+                  <span class="message-avatar user-avatar">
+                    <svg [lucideIcon]="userIcon" [size]="15"></svg>
+                  </span>
+                  <div class="user-bubble">{{ turn.question }}</div>
+                </div>
+
+                <div class="assistant-row">
+                  <span class="message-avatar assistant-avatar">
+                    <svg [lucideIcon]="botIcon" [size]="16"></svg>
+                  </span>
+                  <div class="assistant-content">
+                    <div class="assistant-heading">
+                      <strong>页间</strong>
+                      @if (turn.mode) {
+                        <span class="mode-badge">{{ modeLabel(turn.mode) }}</span>
+                      }
+                    </div>
+
+                    @if (turn.status === 'pending' && !turn.answer) {
+                      <div class="thinking-state" aria-live="polite">
+                        <span class="typing-dots" aria-hidden="true">
+                          <i></i><i></i><i></i>
+                        </span>
+                        正在阅读原文
+                      </div>
+                    } @else if (turn.status === 'error' && !turn.answer) {
+                      <div class="turn-error">
+                        <span>
+                          <svg [lucideIcon]="alertIcon" [size]="16"></svg>
+                          {{ turn.error }}
+                        </span>
+                        <button
+                          class="text-button"
+                          type="button"
+                          (click)="retryTurn(turn)"
+                        >
+                          <svg [lucideIcon]="rotateIcon" [size]="14"></svg>
+                          重试
+                        </button>
+                      </div>
+                    } @else {
+                      <div class="answer-text">
+                        {{ turn.answer }}@if (turn.status === 'pending') {
+                          <span class="stream-caret" aria-hidden="true"></span>
+                        }
+                      </div>
+
+                      @if (turn.status === 'error') {
+                        <div class="stream-warning">
+                          <span>
+                            <svg [lucideIcon]="alertIcon" [size]="15"></svg>
+                            {{ turn.error }}
+                          </span>
+                          <button
+                            class="text-button"
+                            type="button"
+                            (click)="retryTurn(turn)"
+                          >
+                            <svg [lucideIcon]="rotateIcon" [size]="14"></svg>
+                            重试
+                          </button>
+                        </div>
+                      }
+
+                      @if (turn.evidence.length) {
+                        <div class="citation-row">
+                          <span class="citation-label">依据</span>
+                          @for (
+                            item of turn.evidence;
+                            track item.chunk_id;
+                            let index = $index
+                          ) {
+                            <button
+                              class="citation-pill"
+                              type="button"
+                              [title]="
+                                item.book_title + ' · 片段 ' + item.chunk_index
+                              "
+                              (click)="selectCitation(index)"
+                            >
+                              <span>{{ index + 1 }}</span>
+                              {{ item.book_title }}
+                            </button>
+                          }
+                        </div>
+                      }
+                    }
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="composer-area">
+        <div class="composer-shell" [class.disabled]="!books().length">
+          <div class="composer-scope">
+            <span>
+              <svg
+                [lucideIcon]="selectedBook() ? bookIcon : layersIcon"
+                [size]="14"
+              ></svg>
+              {{ currentScopeTitle() }}
+            </span>
+            @if (turns().length && !asking()) {
+              <button
+                class="composer-clear"
+                type="button"
+                title="清空对话"
+                aria-label="清空对话"
+                (click)="clearConversation()"
+              >
+                <svg [lucideIcon]="rotateIcon" [size]="13"></svg>
+              </button>
+            }
+          </div>
+          <textarea
+            #questionInput
+            rows="1"
+            maxlength="2000"
+            [value]="question()"
+            [disabled]="!books().length || asking()"
+            [placeholder]="
+              books().length
+                ? '输入问题，和书籍内容对话'
+                : '请先添加一本书'
+            "
+            (input)="onComposerInput($event)"
+            (keydown)="onComposerKeydown($event)"
+          ></textarea>
+          <div class="composer-footer">
+            <span class="composer-context">
+              @if (questionLength() > 1600) {
+                {{ questionLength() }} / 2000
+              } @else {
+                {{ selectedBook() ? '当前书籍' : '全部书籍' }}
+              }
+            </span>
+            <button
+              class="send-button"
+              type="button"
+              title="发送问题"
+              aria-label="发送问题"
+              [disabled]="!canSubmit()"
+              (click)="submitQuestion()"
+            >
+              <svg [lucideIcon]="arrowUpIcon" [size]="18"></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="evidence-column" [class.mobile-open]="evidenceOpen()">
+    <app-evidence-panel
+      [evidence]="activeEvidence()"
+      [selectedIndex]="selectedEvidenceIndex()"
+      [showClose]="true"
+      (evidenceSelected)="selectEvidence($event)"
+      (closed)="evidenceOpen.set(false)"
+    />
+  </section>
+</div>
+
+@if (uploadOpen()) {
+  <app-upload-dialog
+    [busy]="uploading()"
+    [error]="uploadError()"
+    (closed)="closeUploadDialog()"
+    (uploadRequested)="uploadBook($event)"
+  />
+}
+
+@if (deleteTarget(); as book) {
+  <div class="confirm-backdrop" role="presentation">
+    <section
+      class="confirm-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-title"
+    >
+      <span class="confirm-icon">
+        <svg [lucideIcon]="trashIcon" [size]="21"></svg>
+      </span>
+      <h2 id="delete-title">移出《{{ book.title }}》？</h2>
+      <p>原文文件和向量索引会一并删除，此操作无法撤销。</p>
+      <div class="confirm-actions">
+        <button
+          class="button button-secondary"
+          type="button"
+          [disabled]="deleting()"
+          (click)="cancelDelete()"
+        >
+          取消
+        </button>
+        <button
+          class="button button-danger"
+          type="button"
+          [disabled]="deleting()"
+          (click)="confirmDelete()"
+        >
+          @if (deleting()) {
+            <span class="button-spinner" aria-hidden="true"></span>
+            正在删除
+          } @else {
+            确认移出
+          }
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (toastMessage(); as message) {
+  <div
+    class="toast"
+    [class.toast-error]="toastTone() === 'error'"
+    role="status"
+    aria-live="polite"
+  >
+    <span class="toast-dot"></span>
+    <span>{{ message }}</span>
+    <button
+      type="button"
+      title="关闭提示"
+      aria-label="关闭提示"
+      (click)="closeToast()"
+    >
+      <svg [lucideIcon]="closeIcon" [size]="15"></svg>
+    </button>
+  </div>
+}

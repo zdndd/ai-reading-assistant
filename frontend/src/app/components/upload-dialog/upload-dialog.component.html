@@ -1,0 +1,119 @@
+<div
+  class="dialog-backdrop"
+  role="presentation"
+  (click)="onBackdropClick($event)"
+>
+  <section
+    class="dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="upload-title"
+  >
+    <header class="dialog-header">
+      <div>
+        <span class="dialog-kicker">书库</span>
+        <h2 id="upload-title">添加书籍</h2>
+      </div>
+      <button
+        class="icon-button"
+        type="button"
+        title="关闭"
+        aria-label="关闭上传窗口"
+        [disabled]="busy"
+        (click)="close()"
+      >
+        <svg [lucideIcon]="closeIcon" [size]="18"></svg>
+      </button>
+    </header>
+
+    <div class="dialog-body">
+      @if (!file) {
+        <button
+          class="drop-zone"
+          type="button"
+          [class.drag-active]="dragActive"
+          (click)="openFilePicker()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+        >
+          <span class="drop-icon">
+            <svg [lucideIcon]="uploadIcon" [size]="24"></svg>
+          </span>
+          <span class="drop-title">选择或拖入文档</span>
+          <span class="drop-hint">TXT、MD，最大 20 MB</span>
+        </button>
+      } @else {
+        <div class="selected-file">
+          <span class="file-icon">
+            <svg [lucideIcon]="fileIcon" [size]="20"></svg>
+          </span>
+          <div class="file-copy">
+            <strong>{{ file.name }}</strong>
+            <span>{{ formatBytes(file.size) }}</span>
+          </div>
+          <button
+            class="icon-button subtle"
+            type="button"
+            title="移除文件"
+            aria-label="移除已选择文件"
+            [disabled]="busy"
+            (click)="removeFile()"
+          >
+            <svg [lucideIcon]="closeIcon" [size]="16"></svg>
+          </button>
+        </div>
+      }
+
+      <input
+        #fileInput
+        class="visually-hidden"
+        type="file"
+        accept=".txt,.md,.markdown,text/plain,text/markdown"
+        (change)="onFileChange($event)"
+      >
+
+      <label class="field-label" for="book-title">书名</label>
+      <div class="input-shell">
+        <svg [lucideIcon]="bookIcon" [size]="17"></svg>
+        <input
+          id="book-title"
+          name="bookTitle"
+          type="text"
+          maxlength="200"
+          placeholder="默认使用文件名"
+          [(ngModel)]="title"
+          [disabled]="busy"
+        >
+      </div>
+
+      @if (validationError || error) {
+        <p class="form-error" role="alert">{{ validationError || error }}</p>
+      }
+    </div>
+
+    <footer class="dialog-footer">
+      <button
+        class="button button-secondary"
+        type="button"
+        [disabled]="busy"
+        (click)="close()"
+      >
+        取消
+      </button>
+      <button
+        class="button button-primary"
+        type="button"
+        [disabled]="!file || busy"
+        (click)="submit()"
+      >
+        @if (busy) {
+          <span class="button-spinner" aria-hidden="true"></span>
+          建立索引
+        } @else {
+          添加并索引
+        }
+      </button>
+    </footer>
+  </section>
+</div>

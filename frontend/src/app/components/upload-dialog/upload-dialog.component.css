@@ -1,0 +1,220 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+}
+
+.dialog-backdrop {
+  display: grid;
+  min-height: 100%;
+  padding: 24px;
+  place-items: center;
+  background: rgba(13, 28, 23, 0.58);
+  backdrop-filter: blur(4px);
+}
+
+.dialog {
+  width: min(100%, 480px);
+  overflow: hidden;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 10px;
+  box-shadow: 0 24px 70px rgba(10, 28, 22, 0.2);
+  animation: dialog-enter 180ms ease-out;
+}
+
+.dialog-header,
+.dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 22px;
+}
+
+.dialog-header {
+  border-bottom: 1px solid var(--line);
+}
+
+.dialog-header h2 {
+  margin: 3px 0 0;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+}
+
+.dialog-kicker {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dialog-body {
+  display: grid;
+  gap: 10px;
+  padding: 22px;
+}
+
+.drop-zone {
+  display: grid;
+  min-height: 184px;
+  padding: 28px;
+  place-items: center;
+  align-content: center;
+  color: var(--ink);
+  cursor: pointer;
+  background: #f8faf7;
+  border: 1px dashed #b9c8bd;
+  border-radius: 8px;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    transform 150ms ease;
+}
+
+.drop-zone:hover,
+.drop-zone.drag-active {
+  background: #f1f7f2;
+  border-color: var(--teal);
+  transform: translateY(-1px);
+}
+
+.drop-icon,
+.file-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  color: var(--forest);
+  background: #e7f0e9;
+  border-radius: 8px;
+  place-items: center;
+}
+
+.drop-title {
+  margin-top: 13px;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.drop-hint {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.selected-file {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 34px;
+  gap: 12px;
+  align-items: center;
+  padding: 13px;
+  background: #f8faf7;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.file-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.file-copy strong {
+  overflow: hidden;
+  font-size: 0.88rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-copy span {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.field-label {
+  margin-top: 8px;
+  color: #33423b;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.input-shell {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.input-shell:focus-within {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(45, 119, 97, 0.11);
+}
+
+.input-shell input {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 0;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.input-shell input::placeholder {
+  color: #a1aaa4;
+}
+
+.form-error {
+  margin: 2px 0 0;
+  color: var(--danger);
+  font-size: 0.78rem;
+}
+
+.dialog-footer {
+  gap: 10px;
+  justify-content: flex-end;
+  background: #fafbf9;
+  border-top: 1px solid var(--line);
+}
+
+.button-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes dialog-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 560px) {
+  .dialog-backdrop {
+    padding: 12px;
+    align-items: end;
+  }
+
+  .dialog {
+    border-radius: 10px 10px 6px 6px;
+  }
+}
